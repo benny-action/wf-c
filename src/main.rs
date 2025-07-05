@@ -15,8 +15,9 @@ pub struct Tile {
 #[derive(Clone, Debug, PartialEq)]
 pub enum TileType {
     Empty,
-    Wall,
-    Floor,
+    Mountain,
+    Land,
+    Coast,
     Water,
 }
 impl Tile {
@@ -31,11 +32,14 @@ impl Tile {
     pub fn empty() -> Self {
         Tile::new(TileType::Empty, [0.0, 0.0, 0.0, 0.0])
     }
-    pub fn wall() -> Self {
-        Tile::new(TileType::Wall, [0.5, 0.5, 0.5, 1.0])
+    pub fn mountain() -> Self {
+        Tile::new(TileType::Mountain, [0.5, 0.5, 0.5, 1.0])
     }
-    pub fn floor() -> Self {
-        Tile::new(TileType::Floor, [0.8, 0.7, 0.6, 1.0])
+    pub fn land() -> Self {
+        Tile::new(TileType::Land, [0.6, 0.3, 0.1, 1.0])
+    }
+    pub fn coast() -> Self {
+        Tile::new(TileType::Coast, [0.8, 0.7, 0.6, 1.0])
     }
     pub fn water() -> Self {
         Tile::new(TileType::Water, [0.2, 0.4, 0.8, 1.0])
@@ -100,6 +104,17 @@ impl TileSystem {
         )
     }
 
+    pub fn get_tile_at_pos(&self, world_x: f64, world_y: f64) -> Option<(usize, usize)> {
+        let grid_x = (world_x / self.tile_size) as usize;
+        let grid_y = (world_y / self.tile_size) as usize;
+
+        if grid_x < self.grid_width && grid_y < self.grid_height {
+            Some((grid_x, grid_y))
+        } else {
+            None
+        }
+    }
+
     pub fn render(&self, c: Context, g: &mut G2d) {
         for (y, row) in self.tiles.iter().enumerate() {
             for (x, tile) in row.iter().enumerate() {
@@ -128,12 +143,12 @@ fn main() {
 
     // border pattern wall thing
     for x in 0..tile_system.grid_width {
-        tile_system.set_tile(x, 0, Tile::wall());
-        tile_system.set_tile(x, tile_system.grid_height - 1, Tile::wall());
+        tile_system.set_tile(x, 0, Tile::mountain());
+        tile_system.set_tile(x, tile_system.grid_height - 1, Tile::mountain());
     }
     for y in 0..tile_system.grid_height {
-        tile_system.set_tile(0, y, Tile::wall());
-        tile_system.set_tile(tile_system.grid_width - 1, y, Tile::wall());
+        tile_system.set_tile(0, y, Tile::mountain());
+        tile_system.set_tile(tile_system.grid_width - 1, y, Tile::mountain());
     }
 
     while let Some(event) = window.next() {

@@ -141,6 +141,8 @@ fn main() {
 
     let mut tile_system = TileSystem::new(512.0, 512.0, 32.0);
 
+    let mut mouse_pos = [0.0, 0.0];
+
     // border pattern wall thing
     for x in 0..tile_system.grid_width {
         tile_system.set_tile(x, 0, Tile::mountain());
@@ -153,6 +155,31 @@ fn main() {
 
     while let Some(event) = window.next() {
         match event {
+            Event::Input(Input::Move(Motion::MouseCursor(pos)), _) => {
+                //Input::Text is an option
+                //for swapping tiles with keyboard? with saved colour variable?
+                mouse_pos = pos;
+            }
+            Event::Input(
+                Input::Button(ButtonArgs {
+                    state: ButtonState::Press,
+                    button: Button::Mouse(MouseButton::Left),
+                    ..
+                }),
+                _,
+            ) => {
+                if let Some((grid_x, grid_y)) =
+                    tile_system.get_tile_at_pos(mouse_pos[1], mouse_pos[0])
+                // flipped for some
+                // reason, something to do with the vecs of tiles? needs to stay.
+                {
+                    println!(
+                        "Mouse pos: ({:.1}, {:.1}) -> Grid: ({}, {})",
+                        mouse_pos[0], mouse_pos[1], grid_x, grid_y
+                    );
+                    tile_system.set_tile(grid_x, grid_y, Tile::water());
+                }
+            }
             Event::Loop(_) => {
                 window.draw_2d(&event, |c, g, _| {
                     clear([0.0, 0.0, 0.0, 1.0], g);

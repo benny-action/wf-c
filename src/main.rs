@@ -36,7 +36,7 @@ impl Tile {
         Tile::new(TileType::Mountain, [0.5, 0.5, 0.5, 1.0])
     }
     pub fn land() -> Self {
-        Tile::new(TileType::Land, [0.6, 0.3, 0.1, 1.0])
+        Tile::new(TileType::Land, [0.3, 0.8, 0.4, 1.0])
     }
     pub fn coast() -> Self {
         Tile::new(TileType::Coast, [0.8, 0.7, 0.6, 1.0])
@@ -143,6 +143,8 @@ fn main() {
 
     let mut mouse_pos = [0.0, 0.0];
 
+    let mut selected_tile_type = TileType::Water;
+
     // border pattern wall thing
     for x in 0..tile_system.grid_width {
         tile_system.set_tile(x, 0, Tile::mountain());
@@ -152,6 +154,12 @@ fn main() {
         tile_system.set_tile(0, y, Tile::mountain());
         tile_system.set_tile(tile_system.grid_width - 1, y, Tile::mountain());
     }
+
+    println!("Tile Controls:");
+    println!("| 1: Empty | 2: Mountain | 3: Land |");
+    println!("| 4: Coast | 5: Water    | ESC: Xt |");
+    println!("Left click to place a tile");
+    println!("Current tile: {:?}", selected_tile_type);
 
     while let Some(event) = window.next() {
         match event {
@@ -163,6 +171,36 @@ fn main() {
             Event::Input(
                 Input::Button(ButtonArgs {
                     state: ButtonState::Press,
+                    button: Button::Keyboard(key),
+                    ..
+                }),
+                _,
+            ) => match key {
+                Key::D1 => {
+                    selected_tile_type = TileType::Empty;
+                    println!("Selected: Empty tile");
+                }
+                Key::D2 => {
+                    selected_tile_type = TileType::Mountain;
+                    println!("Selected: Mountain tile");
+                }
+                Key::D3 => {
+                    selected_tile_type = TileType::Land;
+                    println!("Selected: Land tile");
+                }
+                Key::D4 => {
+                    selected_tile_type = TileType::Coast;
+                    println!("Selected: Coast tile");
+                }
+                Key::D5 => {
+                    selected_tile_type = TileType::Water;
+                    println!("Selected: Water tile");
+                }
+                _ => {}
+            },
+            Event::Input(
+                Input::Button(ButtonArgs {
+                    state: ButtonState::Press,
                     button: Button::Mouse(MouseButton::Left),
                     ..
                 }),
@@ -170,14 +208,20 @@ fn main() {
             ) => {
                 if let Some((grid_x, grid_y)) =
                     tile_system.get_tile_at_pos(mouse_pos[1], mouse_pos[0])
-                // flipped for some
-                // reason, something to do with the vecs of tiles? needs to stay.
                 {
+                    let tile_to_place = match selected_tile_type {
+                        TileType::Empty => Tile::empty(),
+                        TileType::Mountain => Tile::mountain(),
+                        TileType::Land => Tile::land(),
+                        TileType::Coast => Tile::coast(),
+                        TileType::Water => Tile::water(),
+                    };
+
+                    tile_system.set_tile(grid_x, grid_y, tile_to_place);
                     println!(
-                        "Mouse pos: ({:.1}, {:.1}) -> Grid: ({}, {})",
-                        mouse_pos[0], mouse_pos[1], grid_x, grid_y
+                        "Placed {:?} at ({}, {})",
+                        selected_tile_type, grid_x, grid_y
                     );
-                    tile_system.set_tile(grid_x, grid_y, Tile::water());
                 }
             }
             Event::Loop(_) => {

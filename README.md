@@ -1,3 +1,4 @@
+<!-- vale off -->
 # WF-C
 
 ## Idea
@@ -12,9 +13,11 @@ Little window with square tiles, 512x512 window with 32px tiles, set of six colo
 illustrate.
 
 ## TODO:
- - Come up with a way to build examples for the seeds. IMPORTANT:
-    > Opening to the program, build a clicker palette with clickable tiles. Keyboard input to change the four types.
-    > Mountain (Dark GREY), Land (Brown), Coast (Sandy-yellow), Sea (Blue)
+ - Come up with a way to build examples for the seeds. 
+    > Fill on right click to speed up building. NEXT TASK
+
  - Implement wf-c logic behind the scenes in order to get single example working
+    > Once we have way to build input images, need a function to analyse them.
+    > This function can then build weights and rules for wfc
  - Come up with easy interface to refresh render, swap between seeds.
  - 

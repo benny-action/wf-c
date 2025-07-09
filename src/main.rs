@@ -97,6 +97,54 @@ impl TileSystem {
         }
     }
 
+    pub fn fill_to_border(&mut self, start_x: usize, start_y: usize, new_tile: Tile) {
+        let original_tile = if let Some(tile) = self.get_tile(start_x, start_y) {
+            tile.tile_type.clone()
+        } else {
+            return;
+        };
+
+        if original_tile == new_tile.tile_type {
+            return;
+        }
+
+        let mut stack = Vec::new();
+        stack.push((start_x, start_y));
+
+        while let Some((x, y)) = stack.pop() {
+            if x >= self.grid_width || y >= self.grid_height {
+                continue;
+            }
+
+            if let Some(current_tile) = self.get_tile(x, y) {
+                if current_tile.tile_type != original_tile {
+                    continue;
+                }
+            } else {
+                continue;
+            }
+
+            self.tiles[x][y] = new_tile.clone();
+
+            //left
+            if x > 0 {
+                stack.push((x - 1, y));
+            }
+            //right
+            if x < self.grid_width - 1 {
+                stack.push((x + 1, y));
+            }
+            //up
+            if y > 0 {
+                stack.push((x, y - 1));
+            }
+            //down
+            if y < self.grid_height - 1 {
+                stack.push((x, y + 1));
+            }
+        }
+    }
+
     pub fn grid_to_world(&self, grid_x: usize, grid_y: usize) -> (f64, f64) {
         (
             grid_x as f64 * self.tile_size,
@@ -220,6 +268,32 @@ fn main() {
                     tile_system.set_tile(grid_x, grid_y, tile_to_place);
                     println!(
                         "Placed {:?} at ({}, {})",
+                        selected_tile_type, grid_x, grid_y
+                    );
+                }
+            }
+            Event::Input(
+                Input::Button(ButtonArgs {
+                    state: ButtonState::Press,
+                    button: Button::Mouse(MouseButton::Right),
+                    ..
+                }),
+                _,
+            ) => {
+                if let Some((grid_x, grid_y)) =
+                    tile_system.get_tile_at_pos(mouse_pos[1], mouse_pos[0])
+                {
+                    let tile_to_fill = match selected_tile_type {
+                        TileType::Empty => Tile::empty(),
+                        TileType::Mountain => Tile::mountain(),
+                        TileType::Land => Tile::land(),
+                        TileType::Coast => Tile::coast(),
+                        TileType::Water => Tile::water(),
+                    };
+
+                    tile_system.fill_to_border(grid_x, grid_y, tile_to_fill);
+                    println!(
+                        "Filled {:?} at ({}, {})",
                         selected_tile_type, grid_x, grid_y
                     );
                 }

@@ -2,9 +2,6 @@ use std::usize;
 
 use piston_window::*;
 
-const WIDTH: i32 = 512;
-const HEIGHT: i32 = 512;
-
 #[derive(Clone, Debug)]
 pub struct Tile {
     pub colour: [f32; 4],
@@ -108,11 +105,17 @@ impl TileSystem {
             return;
         }
 
+        let mut visited = vec![vec![false; self.grid_width]; self.grid_height];
+
         let mut stack = Vec::new();
         stack.push((start_x, start_y));
 
         while let Some((x, y)) = stack.pop() {
             if x >= self.grid_width || y >= self.grid_height {
+                continue;
+            }
+
+            if visited[x][y] {
                 continue;
             }
 
@@ -124,6 +127,7 @@ impl TileSystem {
                 continue;
             }
 
+            visited[x][y] = true;
             self.tiles[x][y] = new_tile.clone();
 
             //left

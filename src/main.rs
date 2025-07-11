@@ -1,4 +1,4 @@
-use std::usize;
+use std::{collections::HashMap, usize};
 
 use piston_window::*;
 
@@ -50,6 +50,7 @@ pub struct TileSystem {
     pub grid_height: usize,
     pub window_width: f64,
     pub window_height: f64,
+    pub saved_configs: HashMap<String, Vec<Vec<TileType>>>,
 }
 
 impl TileSystem {
@@ -73,6 +74,7 @@ impl TileSystem {
             grid_height,
             window_width,
             window_height,
+            saved_configs: HashMap::new(),
         }
     }
 
@@ -92,6 +94,63 @@ impl TileSystem {
         } else {
             false
         }
+    }
+
+    pub fn save_config(&mut self, name: String) {
+        let mut config = Vec::new();
+        for row in &self.tiles {
+            let mut config_row = Vec::new();
+            for tile in row {
+                config_row.push(tile.tile_type.clone());
+            }
+            config.push(config_row);
+        }
+        self.saved_configs.insert(name.clone(), config);
+        println!("Saved configuration: {}", name);
+    }
+
+    pub fn load_config(&mut self, name: &str) -> bool {
+        if let Some(config) = self.saved_configs.get(name) {
+            for (y, row) in config.iter().enumerate() {
+                for (x, tile_type) in row.iter().enumerate() {
+                    if y < self.grid_height && x < self.grid_width {
+                        let tile = match tile_type {
+                            TileType::Empty => Tile::empty(),
+                            TileType::Mountain => Tile::mountain(),
+                            TileType::Land => Tile::land(),
+                            TileType::Coast => Tile::coast(),
+                            TileType::Water => Tile::water(),
+                        };
+                        self.tiles[y][x] = tile;
+                    }
+                }
+            }
+            println!("Loaded configuration: {}", name);
+            true
+        } else {
+            println!("Configuration '{}' not found", name);
+            false
+        }
+    }
+
+    pub fn list_configs(&self) {
+        if self.saved_configs.is_empty() {
+            println!("No saved configurations");
+        } else {
+            println!("Saved configurations:");
+            for name in self.saved_configs.keys() {
+                println!(" - {}", name);
+            }
+        }
+    }
+
+    pub fn clear_map(&mut self) {
+        for row in &mut self.tiles {
+            for tile in row {
+                *tile = Tile::empty();
+            }
+        }
+        println!("Map cleared");
     }
 
     pub fn fill_to_border(&mut self, start_x: usize, start_y: usize, new_tile: Tile) {
@@ -130,6 +189,7 @@ impl TileSystem {
             visited[x][y] = true;
             self.tiles[x][y] = new_tile.clone();
 
+            //TODO: fix x and y flip flop thing.
             //left
             if x > 0 {
                 stack.push((x - 1, y));
@@ -208,16 +268,16 @@ fn main() {
     }
 
     println!("Tile Controls:");
-    println!("| 1: Empty | 2: Mountain | 3: Land |");
-    println!("| 4: Coast | 5: Water    | ESC: Xt |");
-    println!("Left click to place a tile");
+    println!("1-5 -> Select tile type (Empty/Mountain/Land/Coast/Water)");
+    println!("Left click -> place a tile");
+    println!("L/S/P -> Load/Save/Print Configuration");
+    println!("C -> Clear map");
+    println!("ESC: Exit");
     println!("Current tile: {:?}", selected_tile_type);
 
     while let Some(event) = window.next() {
         match event {
             Event::Input(Input::Move(Motion::MouseCursor(pos)), _) => {
-                //Input::Text is an option
-                //for swapping tiles with keyboard? with saved colour variable?
                 mouse_pos = pos;
             }
             Event::Input(
@@ -248,6 +308,36 @@ fn main() {
                     selected_tile_type = TileType::Water;
                     println!("Selected: Water tile");
                 }
+                Key::S => {
+                    use std::io::{self, Write};
+                    print!("Enter name for saved configuration: ");
+                    io::stdout().flush().unwrap();
+                    let mut input = String::new();
+                    if io::stdin().read_line(&mut input).is_ok() {
+                        let name = input.trim().to_string();
+                        if !name.is_empty() {
+                            tile_system.save_config(name);
+                        }
+                    }
+                }
+                Key::L => {
+                    use std::io::{self, Write};
+                    tile_system.list_configs();
+                    print!("Enter name of configuration to load: ");
+                    io::stdout().flush().unwrap();
+                    let mut input = String::new();
+                    if io::stdin().read_line(&mut input).is_ok() {
+                        let name = input.trim();
+                        tile_system.load_config(name);
+                    }
+                }
+                Key::C => {
+                    tile_system.clear_map();
+                    println!("Map cleared");
+                }
+                Key::P => {
+                    tile_system.list_configs();
+                }
                 _ => {}
             },
             Event::Input(
@@ -270,38 +360,39 @@ fn main() {
                     };
 
                     tile_system.set_tile(grid_x, grid_y, tile_to_place);
-                    println!(
-                        "Placed {:?} at ({}, {})",
-                        selected_tile_type, grid_x, grid_y
-                    );
+                    // println!(
+                    //     "Placed {:?} at ({}, {})",
+                    //     selected_tile_type, grid_x, grid_y
+                    // );
                 }
             }
-            Event::Input(
-                Input::Button(ButtonArgs {
-                    state: ButtonState::Press,
-                    button: Button::Mouse(MouseButton::Right),
-                    ..
-                }),
-                _,
-            ) => {
-                if let Some((grid_x, grid_y)) =
-                    tile_system.get_tile_at_pos(mouse_pos[1], mouse_pos[0])
-                {
-                    let tile_to_fill = match selected_tile_type {
-                        TileType::Empty => Tile::empty(),
-                        TileType::Mountain => Tile::mountain(),
-                        TileType::Land => Tile::land(),
-                        TileType::Coast => Tile::coast(),
-                        TileType::Water => Tile::water(),
-                    };
 
-                    tile_system.fill_to_border(grid_x, grid_y, tile_to_fill);
-                    println!(
-                        "Filled {:?} at ({}, {})",
-                        selected_tile_type, grid_x, grid_y
-                    );
-                }
-            }
+            // Event::Input(
+            //     Input::Button(ButtonArgs {
+            //         state: ButtonState::Press,
+            //         button: Button::Mouse(MouseButton::Right),
+            //         ..
+            //     }),
+            //     _,
+            // ) => {
+            //     if let Some((grid_x, grid_y)) =
+            //         tile_system.get_tile_at_pos(mouse_pos[1], mouse_pos[0])
+            //     {
+            //         let tile_to_fill = match selected_tile_type {
+            //             TileType::Empty => Tile::empty(),
+            //             TileType::Mountain => Tile::mountain(),
+            //             TileType::Land => Tile::land(),
+            //             TileType::Coast => Tile::coast(),
+            //             TileType::Water => Tile::water(),
+            //         };
+            //
+            //         tile_system.fill_to_border(grid_x, grid_y, tile_to_fill);
+            //         println!(
+            //             "Filled {:?} at ({}, {})",
+            //             selected_tile_type, grid_x, grid_y
+            //         );
+            //     }
+            // }
             Event::Loop(_) => {
                 window.draw_2d(&event, |c, g, _| {
                     clear([0.0, 0.0, 0.0, 1.0], g);

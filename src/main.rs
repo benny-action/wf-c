@@ -268,11 +268,11 @@ fn main() {
     }
 
     println!("Tile Controls:");
-    println!("1-5 -> Select tile type (Empty/Mountain/Land/Coast/Water)");
+    println!("1-5        -> Select tile type (Empty/Mountain/Land/Coast/Water)");
     println!("Left click -> place a tile");
-    println!("L/S/P -> Load/Save/Print Configuration");
-    println!("C -> Clear map");
-    println!("ESC: Exit");
+    println!("L/S/P      -> Load/Save/Print Configuration");
+    println!("C          -> Clear map");
+    println!("ESC        -> Exit");
     println!("Current tile: {:?}", selected_tile_type);
 
     while let Some(event) = window.next() {
@@ -367,32 +367,32 @@ fn main() {
                 }
             }
 
-            // Event::Input(
-            //     Input::Button(ButtonArgs {
-            //         state: ButtonState::Press,
-            //         button: Button::Mouse(MouseButton::Right),
-            //         ..
-            //     }),
-            //     _,
-            // ) => {
-            //     if let Some((grid_x, grid_y)) =
-            //         tile_system.get_tile_at_pos(mouse_pos[1], mouse_pos[0])
-            //     {
-            //         let tile_to_fill = match selected_tile_type {
-            //             TileType::Empty => Tile::empty(),
-            //             TileType::Mountain => Tile::mountain(),
-            //             TileType::Land => Tile::land(),
-            //             TileType::Coast => Tile::coast(),
-            //             TileType::Water => Tile::water(),
-            //         };
-            //
-            //         tile_system.fill_to_border(grid_x, grid_y, tile_to_fill);
-            //         println!(
-            //             "Filled {:?} at ({}, {})",
-            //             selected_tile_type, grid_x, grid_y
-            //         );
-            //     }
-            // }
+            Event::Input(
+                Input::Button(ButtonArgs {
+                    state: ButtonState::Press,
+                    button: Button::Mouse(MouseButton::Right),
+                    ..
+                }),
+                _,
+            ) => {
+                if let Some((grid_x, grid_y)) =
+                    tile_system.get_tile_at_pos(mouse_pos[1], mouse_pos[0])
+                {
+                    let tile_to_fill = match selected_tile_type {
+                        TileType::Empty => Tile::empty(),
+                        TileType::Mountain => Tile::mountain(),
+                        TileType::Land => Tile::land(),
+                        TileType::Coast => Tile::coast(),
+                        TileType::Water => Tile::water(),
+                    };
+
+                    tile_system.fill_to_border(grid_x, grid_y, tile_to_fill);
+                    println!(
+                        "Filled {:?} at ({}, {})",
+                        selected_tile_type, grid_x, grid_y
+                    );
+                }
+            }
             Event::Loop(_) => {
                 window.draw_2d(&event, |c, g, _| {
                     clear([0.0, 0.0, 0.0, 1.0], g);

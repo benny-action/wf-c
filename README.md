@@ -14,10 +14,13 @@ illustrate.
 
 ## TODO:
  - Come up with a way to build examples for the seeds. 
-    > Fill on right click to speed up building. NEXT TASK
+    > NEXT TASK: Store tile grid to JSON
+    > AFTER: use to imput into wfc function.
 
  - Implement wf-c logic behind the scenes in order to get single example working
     > Once we have way to build input images, need a function to analyse them.
     > This function can then build weights and rules for wfc
+
+ MIGHT AS WELL:
  - Come up with easy interface to refresh render, swap between seeds.
  - 

@@ -1,15 +1,18 @@
+use serde::{Deserialize, Serialize};
+use std::fs;
+use std::io::{self, Write};
 use std::{collections::HashMap, usize};
 
 use piston_window::*;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Tile {
     pub colour: [f32; 4],
     pub tile_type: TileType,
     pub visible: bool,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum TileType {
     Empty,
     Mountain,
@@ -43,6 +46,7 @@ impl Tile {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TileSystem {
     pub tiles: Vec<Vec<Tile>>,
     pub tile_size: f64,
@@ -107,6 +111,20 @@ impl TileSystem {
         }
         self.saved_configs.insert(name.clone(), config);
         println!("Saved configuration: {}", name);
+    }
+
+    pub fn save_to_file(&self, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let json_data = serde_json::to_string_pretty(self)?;
+        fs::write(filename, json_data)?;
+        println!("Saved tile system to {}", filename);
+        Ok(())
+    }
+
+    pub fn load_from_tile(filename: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        let json_data = fs::read_to_string(filename)?;
+        let tile_system: TileSystem = serde_json::from_str(&json_data)?;
+        println!("Loaded tile systems from {}", filename);
+        Ok(tile_system)
     }
 
     pub fn load_config(&mut self, name: &str) -> bool {
@@ -393,6 +411,8 @@ fn main() {
                     );
                 }
             }
+
+            //TODO: write a control for loading from and saving to file, test.
             Event::Loop(_) => {
                 window.draw_2d(&event, |c, g, _| {
                     clear([0.0, 0.0, 0.0, 1.0], g);

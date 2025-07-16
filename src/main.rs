@@ -58,6 +58,8 @@ pub struct TileSystem {
 }
 
 impl TileSystem {
+    const SAVE_FILE: &'static str = "tile_system.json";
+
     pub fn new(window_width: f64, window_height: f64, tile_size: f64) -> Self {
         let grid_width = (window_width / tile_size) as usize;
         let grid_height = (window_height / tile_size) as usize;
@@ -79,6 +81,25 @@ impl TileSystem {
             window_width,
             window_height,
             saved_configs: HashMap::new(),
+        }
+    }
+
+    pub fn load_or_new() -> Self {
+        match fs::read_to_string(Self::SAVE_FILE) {
+            Ok(json_data) => match serde_json::from_str(&json_data) {
+                Ok(tile_system) => {
+                    println!("Loaded from previous save");
+                    tile_system
+                }
+                Err(e) => {
+                    println!("Error parsing save file: {}, starting fresh", e);
+                    Self::new(512.0, 512.0, 32.0)
+                }
+            },
+            Err(_) => {
+                println!("No save file found, starting fresh");
+                Self::new(512.0, 512.0, 32.0)
+            }
         }
     }
 
@@ -113,20 +134,6 @@ impl TileSystem {
         println!("Saved configuration: {}", name);
     }
 
-    pub fn save_to_file(&self, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let json_data = serde_json::to_string_pretty(self)?;
-        fs::write(filename, json_data)?;
-        println!("Saved tile system to {}", filename);
-        Ok(())
-    }
-
-    pub fn load_from_tile(filename: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        let json_data = fs::read_to_string(filename)?;
-        let tile_system: TileSystem = serde_json::from_str(&json_data)?;
-        println!("Loaded tile systems from {}", filename);
-        Ok(tile_system)
-    }
-
     pub fn load_config(&mut self, name: &str) -> bool {
         if let Some(config) = self.saved_configs.get(name) {
             for (y, row) in config.iter().enumerate() {
@@ -150,7 +157,6 @@ impl TileSystem {
             false
         }
     }
-
     pub fn list_configs(&self) {
         if self.saved_configs.is_empty() {
             println!("No saved configurations");
@@ -169,6 +175,25 @@ impl TileSystem {
             }
         }
         println!("Map cleared");
+    }
+
+    pub fn delete_config(&mut self) {
+        // delete from the inner list. might as well.
+    }
+
+    pub fn save_to_file(&self) {
+        match serde_json::to_string_pretty(self) {
+            Ok(json_data) => {
+                if let Err(e) = fs::write(Self::SAVE_FILE, json_data) {
+                    eprintln!("Failed to save state: {}", e);
+                } else {
+                    println!("State saved");
+                }
+            }
+            Err(e) => {
+                eprintln!("Failed to serialize state: {}", e);
+            }
+        }
     }
 
     pub fn fill_to_border(&mut self, start_x: usize, start_y: usize, new_tile: Tile) {
@@ -269,7 +294,7 @@ fn main() {
         .build()
         .unwrap();
 
-    let mut tile_system = TileSystem::new(512.0, 512.0, 32.0);
+    let mut tile_system = TileSystem::load_or_new();
 
     let mut mouse_pos = [0.0, 0.0];
 
@@ -422,4 +447,5 @@ fn main() {
             _ => {}
         }
     }
+    tile_system.save_to_file();
 }

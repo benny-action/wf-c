@@ -286,6 +286,15 @@ impl TileSystem {
             }
         }
     }
+
+    pub fn wave_inputs(&self) {
+        // TODO: Read the input vecs and count the patterns.
+        // TODO: create an array with the dimensions of the output. each element represents a state
+        // TODO: a state is a superpos of nxn patterns with bool coefficients
+        // NOTE: may need to initialise new struct and implement?
+        // TODO: initialise the wave (with keyboard command)(smaller tiles?)
+        // NOTE: ADJACENCY DATA??
+    }
 }
 
 fn main() {

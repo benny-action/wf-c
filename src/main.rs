@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::fs;
 use std::io::{self, Write};
 use std::{collections::HashMap, usize};
@@ -287,13 +288,31 @@ impl TileSystem {
         }
     }
 
-    pub fn wave_inputs(&self) {
-        // TODO: Read the input vecs and count the patterns.
-        // TODO: create an array with the dimensions of the output. each element represents a state
-        // TODO: a state is a superpos of nxn patterns with bool coefficients
-        // NOTE: may need to initialise new struct and implement?
-        // TODO: initialise the wave (with keyboard command)(smaller tiles?)
-        // NOTE: ADJACENCY DATA??
+    // TODO: Read the input vecs and count the patterns.
+    // TODO: create an array with the dimensions of the output. each element represents a state
+    // TODO: a state is a superpos of nxn patterns with bool coefficients
+    // NOTE: may need to initialise new struct and implement?
+    // TODO: initialise the wave (with keyboard command)(smaller tiles?)
+    // NOTE: ADJACENCY DATA??
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SuperpositionState {
+    pub possible_tiles: HashSet<usize>,
+    pub collapsed: bool,
+    pub entropy: usize,
+}
+
+impl SuperpositionState {
+    pub fn new(tile_count: usize) -> Self {
+        let possible_tiles: HashSet<usize> = (0..tile_count).collect();
+        let entropy = possible_tiles.len();
+
+        Self {
+            possible_tiles,
+            collapsed: false,
+            entropy,
+        }
     }
 }
 

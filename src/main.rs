@@ -178,8 +178,18 @@ impl TileSystem {
         println!("Map cleared");
     }
 
-    pub fn delete_config(&mut self) {
-        // delete from the inner list. might as well.
+    pub fn delete_config(&mut self, name: &str) -> Result<Vec<Vec<TileType>>, String> {
+        match self.saved_configs.remove(name) {
+            Some(value) => {
+                println!("Removed '{}' successfully", name);
+                Ok(value)
+            }
+            None => {
+                let error = format!(" Item '{}' not found", name);
+                eprintln!("{}", error);
+                Err(error)
+            }
+        }
     }
 
     pub fn save_to_file(&self) {
@@ -402,6 +412,17 @@ fn main() {
                         tile_system.load_config(name);
                     }
                 }
+                Key::D => {
+                    use std::io::{self, Write};
+                    tile_system.list_configs();
+                    print!("Enter name of configuration to delete: ");
+                    io::stdout().flush().unwrap();
+                    let mut input = String::new();
+                    if io::stdin().read_line(&mut input).is_ok() {
+                        let name = input.trim();
+                        tile_system.delete_config(name);
+                    }
+                }
                 Key::C => {
                     tile_system.clear_map();
                     println!("Map cleared");
@@ -465,7 +486,6 @@ fn main() {
                 }
             }
 
-            //TODO: write a control for loading from and saving to file, test.
             Event::Loop(_) => {
                 window.draw_2d(&event, |c, g, _| {
                     clear([0.0, 0.0, 0.0, 1.0], g);

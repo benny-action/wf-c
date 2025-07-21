@@ -324,6 +324,17 @@ impl SuperpositionState {
             entropy,
         }
     }
+
+    pub fn from_tile(tile_id: usize) -> Self {
+        let mut possible_tiles = Hashset::new();
+        possible_tiles.insert(tile_id);
+
+        Self {
+            possible_tiles,
+            collapsed: true,
+            entropy: 1,
+        }
+    }
 }
 
 fn main() {

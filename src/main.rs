@@ -326,7 +326,7 @@ impl SuperpositionState {
     }
 
     pub fn from_tile(tile_id: usize) -> Self {
-        let mut possible_tiles = Hashset::new();
+        let mut possible_tiles = HashSet::new();
         possible_tiles.insert(tile_id);
 
         Self {
@@ -335,6 +335,30 @@ impl SuperpositionState {
             entropy: 1,
         }
     }
+}
+
+pub fn create_superposition_grid(
+    input_grid: &Vec<Vec<TileType>>,
+    tile_to_id: &dyn Fn(&TileType) -> usize,
+    unique_tile_count: usize,
+) -> Vec<Vec<SuperpositionState>>
+where
+    TileType: Clone + std::fmt::Debug,
+{
+    let rows = input_grid.len();
+    if rows == 0 {
+        return vec![];
+    }
+    let cols = input_grid[0].len();
+
+    let mut superposition_grid: Vec<Vec<SuperpositionState>> = (0..rows)
+        .map(|_| {
+            (0..cols)
+                .map(|_| SuperpositionState::new(unique_tile_count))
+                .collect()
+        })
+        .collect();
+    superposition_grid
 }
 
 fn main() {

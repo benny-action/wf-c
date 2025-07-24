@@ -361,6 +361,51 @@ where
     superposition_grid
 }
 
+pub fn build_adjacency_rules(
+    input_grid: &Vec<Vec<TileType>>,
+    tile_to_id: &dyn Fn(&TileType) -> usize,
+) -> std::collections::HashMap<usize, HashSet<(Direction, usize)>>
+where
+    TileType: Clone + std::fmt::Debug + PartialEq,
+{
+    use std::collections::HashMap;
+
+    let mut adjacency: HashMap<usize, HashSet<(Direction, usize)>> = HashMap::new();
+    let rows = input_grid.len();
+
+    for (row_idx, row) in input_grid.iter().enumerate() {
+        let cols = row.len();
+        for (col_idx, tile) in row.iter().enumerate() {
+            let tile_id = tile_to_id(tile);
+            let adjacency_set = adjacency.entry(tile_id).or_insert_with(HashSet::new);
+
+            let directions = [
+                (Direction::Up, row_idx.wrapping_sub(1), col_idx),
+                (Direction::Down, row_idx + 1, col_idx),
+                (Direction::Left, row_idx, col_idx.wrapping_sub(1)),
+                (Direction::Right, row_idx, col_idx + 1),
+            ];
+
+            for (dir, r, c) in directions {
+                if r < rows && c < cols && !(r == row_idx && c == col_idx) {
+                    let neighbour_id = tile_to_id(&input_grid[r][c]);
+                    adjacency_set.insert((dir, neighbour_id));
+                }
+            }
+        }
+    }
+
+    adjacency
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
 fn main() {
     let mut window: PistonWindow = WindowSettings::new("WaveFunctionCollapse", [512; 2])
         .exit_on_esc(true)

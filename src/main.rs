@@ -414,6 +414,8 @@ fn main() {
 
     let mut tile_system = TileSystem::load_or_new();
 
+    let supr_state = SuperpositionState::new(256);
+
     let mut mouse_pos = [0.0, 0.0];
 
     let mut selected_tile_type = TileType::Water;

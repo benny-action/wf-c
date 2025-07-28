@@ -398,6 +398,20 @@ where
     adjacency
 }
 
+pub fn sps_usage_test(input_grid: &Vec<Vec<TileType>>) {
+    let input_grid = input_grid;
+    let tile_to_id = |tile: &TileType| match tile {
+        TileType::Empty => 0,
+        TileType::Mountain => 1,
+        TileType::Land => 2,
+        TileType::Coast => 3,
+        TileType::Water => 4,
+    };
+    let superposition_grid = build_adjacency_rules(input_grid, tile_to_id);
+
+    //for row in spg, for col in row, DISPLAY>>> push through based on possibility?
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Direction {
     Up,
@@ -414,7 +428,7 @@ fn main() {
 
     let mut tile_system = TileSystem::load_or_new();
 
-    let supr_state = SuperpositionState::new(256);
+    let mut supr_state = SuperpositionState::new(256);
 
     let mut mouse_pos = [0.0, 0.0];
 
@@ -511,6 +525,9 @@ fn main() {
                 }
                 Key::P => {
                     tile_system.list_configs();
+                }
+                Key::W => {
+                    //wrapper function here that calls together all parts?
                 }
                 _ => {}
             },
